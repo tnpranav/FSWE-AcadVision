@@ -1,0 +1,31 @@
+server:
+  port: 8000
+spring:
+  application:
+    name: acadvision-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/acadvision}
+    username: ${DB_USERNAME:acadvision}
+    password: ${DB_PASSWORD:acadvision_dev}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+app:
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  jwt-secret: ${JWT_SECRET}
+  jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  jwt-refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  demo-payments-enabled: ${DEMO_PAYMENTS_ENABLED:false}
+  razorpay:
+    key-id: ${RAZORPAY_KEY_ID:}
+    key-secret: ${RAZORPAY_KEY_SECRET:}

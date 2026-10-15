@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: acadvision-postgres
+    environment:
+      POSTGRES_DB: acadvision
+      POSTGRES_USER: acadvision
+      POSTGRES_PASSWORD: acadvision_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - acadvision_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acadvision -d acadvision"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build: ./backend
+    container_name: acadvision-api
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/acadvision
+      DB_USERNAME: acadvision
+      DB_PASSWORD: acadvision_dev
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET to a base64-encoded random value of at least 32 bytes in .env}
+      FRONTEND_ORIGIN: http://localhost:5173
+      DEMO_PAYMENTS_ENABLED: "false"
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    container_name: acadvision-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+volumes:
+  acadvision_pgdata:

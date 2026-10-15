@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AcadVisionApplication<acadvision-api>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "edu.acadvision.AcadVisionApplication",
+            "projectName": "acadvision-api",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

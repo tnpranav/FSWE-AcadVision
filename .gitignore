@@ -1,0 +1,9 @@
+.env
+.env.local
+backend/.env.local
+frontend/.env
+frontend/dist/
+frontend/node_modules/
+backend/target/
+backend/.maven-home/
+frontend/tsconfig.tsbuildinfo

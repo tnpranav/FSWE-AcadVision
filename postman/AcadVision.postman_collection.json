@@ -1,0 +1,98 @@
+{
+  "info": {
+    "_postman_id": "42f0d56f-916c-4fba-9040-19e3c1367f65",
+    "name": "AcadVision API",
+    "description": "Local API requests for AcadVision. Select the AcadVision Local environment, run a role-specific login, then use the access-token protected requests. Demo logins only; change passwords before exposing the stack.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Password@123\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const data = pm.response.json();", "  pm.environment.set('accessToken', data.accessToken);", "  pm.environment.set('refreshToken', data.refreshToken);", "}"] } }]
+        },
+        {
+          "name": "Login (Faculty)",
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"FAC1001\",\n  \"password\": \"Password@123\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const data = pm.response.json();", "  pm.environment.set('accessToken', data.accessToken);", "  pm.environment.set('refreshToken', data.refreshToken);", "}"] } }]
+        },
+        {
+          "name": "Login (Student)",
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"AV24001\",\n  \"password\": \"Password@123\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const data = pm.response.json();", "  pm.environment.set('accessToken', data.accessToken);", "  pm.environment.set('refreshToken', data.refreshToken);", "}"] } }]
+        },
+        {
+          "name": "Refresh token",
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/refresh" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const data = pm.response.json();", "  pm.environment.set('accessToken', data.accessToken);", "  pm.environment.set('refreshToken', data.refreshToken);", "}"] } }]
+        },
+        { "name": "Current user", "request": { "method": "GET", "url": "{{baseUrl}}/api/auth/me" } },
+        { "name": "Change password", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"ReplaceWithStrongPassword123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/change-password" } },
+        { "name": "Logout", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/logout" }, "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 204) {", "  pm.environment.unset('accessToken');", "  pm.environment.unset('refreshToken');", "}"] } }] },
+        { "name": "Forgot password (generic response)", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"student@campus.edu\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/auth/forgot-password" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "List users", "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/users" } },
+        { "name": "Create student/faculty user", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": \"AV24099\",\n  \"fullName\": \"Example Student\",\n  \"email\": \"example.student@campus.edu\",\n  \"initialPassword\": \"TemporaryPassword123!\",\n  \"role\": \"STUDENT\",\n  \"department\": \"Computer Science\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/admin/users" } },
+        { "name": "Activate/deactivate user", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"active\": false\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/admin/users/{{userId}}/status" } },
+        { "name": "Require password change", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/admin/users/{{userId}}/force-password-change" } },
+        { "name": "List students", "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/students" } },
+        { "name": "List faculty", "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/faculty" } },
+        { "name": "List courses", "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/courses" } },
+        { "name": "Attendance correction requests", "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/attendance-corrections" } }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        { "name": "Portal overview", "request": { "method": "GET", "url": "{{baseUrl}}/api/portal/me" } },
+        { "name": "Course catalog and current enrollments", "request": { "method": "GET", "url": "{{baseUrl}}/api/student/courses" } },
+        { "name": "Enroll in course section", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"courseCode\": \"{{courseCode}}\",\n  \"sectionCode\": \"{{sectionCode}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/student/courses/enroll" } },
+        { "name": "Drop course", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/student/courses/{{courseCode}}" } },
+        { "name": "Get own profile", "request": { "method": "GET", "url": "{{baseUrl}}/api/student/profile" } },
+        { "name": "Update own profile", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+910000000000\",\n  \"hobbies\": \"Reading\",\n  \"extracurriculars\": \"Campus club\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/student/profile" } },
+        { "name": "Get own fee invoices", "request": { "method": "GET", "url": "{{baseUrl}}/api/student/fees/{{userId}}" } },
+        { "name": "Simulate payment (local development only)", "request": { "method": "POST", "url": "{{baseUrl}}/api/student/fees/{{invoiceId}}/simulate-payment" } },
+        { "name": "Assignments", "request": { "method": "GET", "url": "{{baseUrl}}/api/student/assignments" } },
+        { "name": "Submit assignment", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"content\": \"Submission text goes here\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/student/assignments/{{assignmentId}}/submit" } },
+        { "name": "Request attendance correction", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"requestedStatus\": \"PRESENT\",\n  \"reason\": \"Please review the attendance record.\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/student/attendance/1/corrections" } }
+      ]
+    },
+    {
+      "name": "Faculty",
+      "item": [
+        { "name": "Attendance records", "request": { "method": "GET", "url": "{{baseUrl}}/api/faculty/attendance" } },
+        { "name": "Mark attendance", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"AV24001\",\n  \"courseCode\": \"{{courseCode}}\",\n  \"classDate\": \"2026-10-13\",\n  \"status\": \"PRESENT\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/faculty/attendance" } },
+        { "name": "Assignments", "request": { "method": "GET", "url": "{{baseUrl}}/api/faculty/assignments" } },
+        { "name": "Create assignment", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"courseCode\": \"{{courseCode}}\",\n  \"sectionCode\": \"{{sectionCode}}\",\n  \"title\": \"Assignment title\",\n  \"description\": \"Assignment instructions\",\n  \"totalMarks\": 100,\n  \"weightage\": 10,\n  \"dueDate\": \"2026-12-01T23:59:00Z\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/faculty/assignments" } },
+        { "name": "Grade submission", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"score\": 85,\n  \"feedback\": \"Good work\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/faculty/assignments/{{assignmentId}}/submissions/{{userId}}" } },
+        { "name": "Get own profile", "request": { "method": "GET", "url": "{{baseUrl}}/api/faculty/profile" } }
+      ]
+    },
+    {
+      "name": "Shared",
+      "item": [
+        { "name": "Health", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/actuator/health" } },
+        { "name": "Announcements", "request": { "method": "GET", "url": "{{baseUrl}}/api/announcements" } },
+        { "name": "Publish announcement (Admin)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Campus notice\",\n  \"content\": \"Notice content\",\n  \"audience\": \"ALL\",\n  \"priority\": \"NORMAL\",\n  \"pinned\": false\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/admin/announcements" } },
+        { "name": "Notifications", "request": { "method": "GET", "url": "{{baseUrl}}/api/notifications" } },
+        { "name": "Mark notification read", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/notifications/{{notificationId}}/read" } },
+        { "name": "List support tickets", "request": { "method": "GET", "url": "{{baseUrl}}/api/support" } },
+        { "name": "Create support ticket", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"category\": \"TECHNICAL\",\n  \"subject\": \"Help request\",\n  \"description\": \"Describe the issue\",\n  \"priority\": \"MEDIUM\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/support" } }
+      ]
+    }
+  ]
+}
