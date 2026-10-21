@@ -25,7 +25,6 @@ app:
   jwt-secret: ${JWT_SECRET}
   jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   jwt-refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
-  demo-payments-enabled: ${DEMO_PAYMENTS_ENABLED:false}
   razorpay:
     key-id: ${RAZORPAY_KEY_ID:}
     key-secret: ${RAZORPAY_KEY_SECRET:}

@@ -35,8 +35,6 @@ if (-not $env:DB_URL) { $env:DB_URL = 'jdbc:postgresql://localhost:5432/acadvisi
 if (-not $env:DB_USERNAME) { $env:DB_USERNAME = 'acadvision' }
 if (-not $env:DB_PASSWORD) { $env:DB_PASSWORD = 'acadvision_dev' }
 if (-not $env:FRONTEND_ORIGIN) { $env:FRONTEND_ORIGIN = 'http://localhost:5173' }
-if (-not $env:DEMO_PAYMENTS_ENABLED) { $env:DEMO_PAYMENTS_ENABLED = 'false' }
-
 $env:JAVA_TOOL_OPTIONS = "-Duser.home=$PSScriptRoot\.maven-home"
 Set-Location $PSScriptRoot
 & .\mvnw.cmd spring-boot:run
