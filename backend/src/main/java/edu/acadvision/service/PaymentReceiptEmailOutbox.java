@@ -73,7 +73,8 @@ public class PaymentReceiptEmailOutbox {
   private void sendReceipt(long outboxId) {
     try {
       Receipt receipt = jdbc.queryForObject("""
-          SELECT s.full_name AS student_name, o.invoice_id, f.description,
+          SELECT COALESCE(e.recipient_email, ?) AS recipient_email,
+                 s.full_name AS student_name, o.invoice_id, f.description,
                  p.amount, o.currency, p.payment_method, o.razorpay_payment_id,
                  o.receipt_number, COALESCE(o.verified_at, p.verified_at, CURRENT_TIMESTAMP) AS paid_at
           FROM payment_receipt_email_outbox e
@@ -83,11 +84,11 @@ public class PaymentReceiptEmailOutbox {
           JOIN payment_transactions p
             ON p.invoice_id = o.invoice_id AND p.provider_reference = o.razorpay_payment_id
           WHERE e.id = ? AND e.status = 'SENDING'
-          """, (rs, rowNum) -> mapReceipt(rs), outboxId);
+          """, (rs, rowNum) -> mapReceipt(rs), mailbox, outboxId);
 
       SimpleMailMessage message = new SimpleMailMessage();
       message.setFrom(mailbox);
-      message.setTo(mailbox);
+      message.setTo(receipt.recipientEmail());
       message.setSubject("AcadVision payment receipt " + receipt.receiptNumber());
       message.setText(formatMessage(receipt));
       mailSender.send(message);
@@ -106,7 +107,7 @@ public class PaymentReceiptEmailOutbox {
 
   private Receipt mapReceipt(ResultSet rs) throws SQLException {
     Instant paidAt = rs.getTimestamp("paid_at").toInstant();
-    return new Receipt(rs.getString("student_name"), rs.getString("invoice_id"),
+    return new Receipt(rs.getString("recipient_email"), rs.getString("student_name"), rs.getString("invoice_id"),
         rs.getString("description"), rs.getBigDecimal("amount"), rs.getString("currency"),
         rs.getString("payment_method"), rs.getString("razorpay_payment_id"),
         rs.getString("receipt_number"), paidAt);
@@ -123,7 +124,7 @@ public class PaymentReceiptEmailOutbox {
         + "Payment method: " + receipt.paymentMethod() + "\n"
         + "Razorpay payment reference: " + receipt.paymentId() + "\n"
         + "AcadVision receipt number: " + receipt.receiptNumber() + "\n\n"
-        + "This mailbox is configured for AcadVision test payment notifications.\n";
+        + "This receipt was sent to the email address provided in the AcadVision student portal.\n";
   }
 
   private void recordFailure(long outboxId, Exception ex) {
@@ -146,6 +147,6 @@ public class PaymentReceiptEmailOutbox {
     }
   }
 
-  private record Receipt(String studentName, String invoiceId, String description, BigDecimal amount,
+  private record Receipt(String recipientEmail, String studentName, String invoiceId, String description, BigDecimal amount,
       String currency, String paymentMethod, String paymentId, String receiptNumber, Instant paidAt) {}
 }

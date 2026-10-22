@@ -86,6 +86,7 @@ export default function App({ authenticatedRole, authenticatedUser, onLogout }: 
   const [courseIndex, setCourseIndex] = useState(0)
   const [portal, setPortal] = useState<PortalSnapshot>({})
   const [paymentBusy, setPaymentBusy] = useState<string|null>(null)
+  const [paymentRecipientEmail, setPaymentRecipientEmail] = useState('')
   const [availableCourses, setAvailableCourses] = useState<any[]>([])
   const [assignmentForm, setAssignmentForm] = useState({code:'',title:'',description:'',totalMarks:100,weightage:10,dueDate:''})
   const [submissionText, setSubmissionText] = useState('')
@@ -330,6 +331,12 @@ export default function App({ authenticatedRole, authenticatedUser, onLogout }: 
   }
   const payInvoice = async (invoice:any) => {
     if (paymentBusy) return
+    const recipientEmail=paymentRecipientEmail.trim()
+    if (recipientEmail.length>254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+      showToast('Enter a valid receipt email address before paying.')
+      return
+    }
+    setPaymentRecipientEmail('')
     setPaymentBusy(invoice.id)
     try {
       const order=await apiRequest<any>(`/student/fees/${encodeURIComponent(invoice.id)}/razorpay-order`,{method:'POST'},{preserveSessionOnUnauthorized:true})
@@ -337,11 +344,11 @@ export default function App({ authenticatedRole, authenticatedUser, onLogout }: 
       if (!window.Razorpay) throw new Error('Razorpay Checkout is unavailable.')
       const checkout=new window.Razorpay({
         key:order.keyId, order_id:order.orderId, amount:order.amount, currency:order.currency,
-        name:order.name, description:order.description, prefill:order.prefill,
+        name:order.name, description:order.description, prefill:{...order.prefill,email:recipientEmail},
         theme:{color:'#7065f0'},
         handler:async (result:RazorpayCheckoutResult) => {
           try {
-            const receipt=await apiRequest<any>('/student/fees/razorpay/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:result.razorpay_order_id,razorpayPaymentId:result.razorpay_payment_id,razorpaySignature:result.razorpay_signature})},{preserveSessionOnUnauthorized:true})
+            const receipt=await apiRequest<any>('/student/fees/razorpay/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:result.razorpay_order_id,razorpayPaymentId:result.razorpay_payment_id,razorpaySignature:result.razorpay_signature,recipientEmail})},{preserveSessionOnUnauthorized:true})
             const fresh=await apiRequest<any>('/portal/me',undefined,{preserveSessionOnUnauthorized:true}); setPortal(fresh)
             showToast(`Payment verified. Receipt ${receipt.receiptNumber}.`)
           } catch(error) {
@@ -508,7 +515,7 @@ export default function App({ authenticatedRole, authenticatedUser, onLogout }: 
     const total=fees.reduce((s:number,r:any)=>s+Number(r.net_payable??r.amount??0),0)
     const outstanding=fees.filter((r:any)=>r.status!=='PAID').reduce((s:number,r:any)=>s+Number(r.net_payable??r.amount??0),0)
     const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n)
-    return <><div className="stats-grid three-stats"><div className="stat-card"><div className="stat-label">Total billed</div><div className="stat-value">{money(total)}</div></div><div className="stat-card"><div className="stat-label">Paid</div><div className="stat-value">{money(total-outstanding)}</div></div><div className="stat-card"><div className="stat-label">Outstanding</div><div className="stat-value">{money(outstanding)}</div></div></div><section className="panel table-panel"><div className="panel-heading"><div><h3>Fee ledger</h3><p>Invoices and verified Razorpay payments.</p></div></div><div className="table-scroll"><table><thead><tr><th>Invoice</th><th>Description</th><th>Type</th><th>Due date</th><th>Amount</th><th>Status</th><th>Payment</th></tr></thead><tbody>{fees.map((r:any)=><tr key={r.id}><td><span className="id-tag">{r.id}</span></td><td>{r.description}</td><td>{r.fee_type}</td><td>{new Date(r.due_date).toLocaleDateString()}</td><td><b>{money(Number(r.net_payable??r.amount))}</b></td><td><span className={`status ${r.status==='PAID'?'active':'pending'}`}><i/>{r.status}</span></td><td>{r.status!=='PAID'&&<button className="button primary small" disabled={!!paymentBusy} onClick={()=>payInvoice(r)}><Wallet size={14}/>{paymentBusy===r.id?'Opening…':'Pay with Razorpay'}</button>}</td></tr>)}</tbody></table></div>{!fees.length&&<div className="empty-state"><Wallet size={28}/><b>No fee invoices</b><span>There are no fee records for your account.</span></div>}<p className="helper-text">Checkout uses Razorpay test mode. Configure backend test keys to open checkout; test transactions do not collect real money.</p></section></>
+    return <><div className="stats-grid three-stats"><div className="stat-card"><div className="stat-label">Total billed</div><div className="stat-value">{money(total)}</div></div><div className="stat-card"><div className="stat-label">Paid</div><div className="stat-value">{money(total-outstanding)}</div></div><div className="stat-card"><div className="stat-label">Outstanding</div><div className="stat-value">{money(outstanding)}</div></div></div><section className="panel table-panel"><div className="panel-heading"><div><h3>Fee ledger</h3><p>Invoices and verified Razorpay payments.</p></div></div><div className="receipt-recipient"><label htmlFor="payment-recipient-email">Enter receipt email for this payment</label><input id="payment-recipient-email" type="email" autoComplete="off" maxLength={254} value={paymentRecipientEmail} onChange={event=>setPaymentRecipientEmail(event.target.value)} placeholder="name@example.com"/><p>Enter the address where AcadVision should send the receipt. It is requested again for each payment.</p></div><div className="table-scroll"><table><thead><tr><th>Invoice</th><th>Description</th><th>Type</th><th>Due date</th><th>Amount</th><th>Status</th><th>Payment</th></tr></thead><tbody>{fees.map((r:any)=><tr key={r.id}><td><span className="id-tag">{r.id}</span></td><td>{r.description}</td><td>{r.fee_type}</td><td>{new Date(r.due_date).toLocaleDateString()}</td><td><b>{money(Number(r.net_payable??r.amount))}</b></td><td><span className={`status ${r.status==='PAID'?'active':'pending'}`}><i/>{r.status}</span></td><td>{r.status!=='PAID'&&<button className="button primary small" disabled={!!paymentBusy} onClick={()=>payInvoice(r)}><Wallet size={14}/>{paymentBusy===r.id?'Opening…':'Pay with Razorpay'}</button>}</td></tr>)}</tbody></table></div>{!fees.length&&<div className="empty-state"><Wallet size={28}/><b>No fee invoices</b><span>There are no fee records for your account.</span></div>}<p className="helper-text">Checkout uses Razorpay test mode. Configure backend test keys to open checkout; test transactions do not collect real money.</p></section></>
   }
 
   const content = () => {

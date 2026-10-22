@@ -21,6 +21,23 @@ The database is seeded with synthetic users. All demo accounts use the password 
 | Faculty | `FAC1001` | `ananya.rao@campus.edu` |
 | Student | `AV24001` | `aarav.sharma@campus.edu` |
 
+### Additional pending-fee demo students
+
+These 10 student accounts are included for testing the student fee portal and Razorpay test checkout. They all use the demo password `Password@123`; each listed invoice starts with status `PENDING` and is due on 30 November 2026.
+
+| User ID | Name | Email | Department | Semester | Pending invoice | Amount |
+| --- | --- | --- | --- | ---: | --- | ---: |
+| `AV24009` | Aarush Menon | `aarush.menon@campus.edu` | Computer Science & Engineering | 5 | `INV-2610` | INR 30,000 |
+| `AV24010` | Kavya Iyer | `kavya.iyer@campus.edu` | Information Technology | 5 | `INV-2611` | INR 10,000 |
+| `AV24011` | Neel Joshi | `neel.joshi@campus.edu` | Artificial Intelligence & Data Science | 5 | `INV-2612` | INR 15,000 |
+| `AV24012` | Tara Nair | `tara.nair@campus.edu` | Computer Science & Engineering | 3 | `INV-2613` | INR 25,000 |
+| `AV24013` | Vivaan Shah | `vivaan.shah@campus.edu` | Information Technology | 7 | `INV-2614` | INR 35,000 |
+| `AV24014` | Aadhya Reddy | `aadhya.reddy@campus.edu` | Artificial Intelligence & Data Science | 5 | `INV-2615` | INR 12,000 |
+| `AV24015` | Reyansh Kapoor | `reyansh.kapoor@campus.edu` | Computer Science & Engineering | 5 | `INV-2616` | INR 18,000 |
+| `AV24016` | Isha Desai | `isha.desai@campus.edu` | Information Technology | 3 | `INV-2617` | INR 28,000 |
+| `AV24017` | Dev Malhotra | `dev.malhotra@campus.edu` | Artificial Intelligence & Data Science | 7 | `INV-2618` | INR 8,000 |
+| `AV24018` | Myra Kulkarni | `myra.kulkarni@campus.edu` | Computer Science & Engineering | 5 | `INV-2619` | INR 40,000 |
+
 These shared demo credentials are for local development only. Change them before exposing the stack to a network.
 
 ## Run services separately
@@ -54,7 +71,7 @@ For the API, use Java 21+, Maven 3.9+, and PostgreSQL 16+. Start PostgreSQL with
 
 ### Payment receipt email testing
 
-Successful, verified Razorpay payments are queued for an email receipt. In local testing, configure one Gmail mailbox as both sender and recipient in `backend/.env.local` using `MAIL_USERNAME` and a Google App Password in `MAIL_PASSWORD` (remove spaces from the displayed app password). The backend uses Gmail SMTP (`smtp.gmail.com`, port `587`, STARTTLS). Email delivery is retried if SMTP is unavailable and does not undo a verified payment. Keep the app password out of Git and chat. Without mail credentials, payments still succeed and receipts remain queued until email is configured.
+Successful, verified Razorpay payments are queued for an email receipt. Configure the admin Gmail mailbox as the sender in `backend/.env.local` with `MAIL_USERNAME` and its Google App Password in `MAIL_PASSWORD` (remove spaces from the displayed app password). The student enters the recipient address on the Fees & payments page. The backend sends the receipt from the configured admin mailbox to that address only after verifying the payment. It uses Gmail SMTP (`smtp.gmail.com`, port `587`, STARTTLS). Email delivery is retried if SMTP is unavailable and does not undo a verified payment. Keep the app password out of Git and chat. Without mail credentials, payments still succeed and receipts remain queued until email is configured.
 - Demo mode remains available separately. API mode loads connected portal data from the server; some summary/dashboard visuals continue to use sample values.
 - Administrator dashboard previews are read-only demos. There is no impersonation or authorization bypass.
 - API requests and examples are maintained in the Postman collection under `postman/`; Swagger/OpenAPI UI and endpoints are not included.

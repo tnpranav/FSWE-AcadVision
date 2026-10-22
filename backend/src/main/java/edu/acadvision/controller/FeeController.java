@@ -3,7 +3,9 @@ package edu.acadvision.controller;
 import edu.acadvision.security.user.UserPrincipal;
 import edu.acadvision.service.RazorpayGateway;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -118,9 +120,9 @@ public class FeeController {
         UPDATE razorpay_payment_orders SET status='PAID',razorpay_payment_id=?,receipt_number=?,verified_at=? WHERE id=?
         """, input.razorpayPaymentId(), receiptNumber, OffsetDateTime.now(), attempt.get("id"));
     jdbc.update("""
-        INSERT INTO payment_receipt_email_outbox(razorpay_payment_order_id)
-        VALUES(?) ON CONFLICT (razorpay_payment_order_id) DO NOTHING
-        """, attempt.get("id"));
+        INSERT INTO payment_receipt_email_outbox(razorpay_payment_order_id,recipient_email)
+        VALUES(?,?) ON CONFLICT (razorpay_payment_order_id) DO NOTHING
+        """, attempt.get("id"), input.recipientEmail().trim());
     return Map.of("status", "SUCCESS", "receiptNumber", receiptNumber, "invoiceId", invoiceId);
   }
 
@@ -152,5 +154,6 @@ public class FeeController {
   }
 
   public record VerifyPayment(@NotBlank String razorpayOrderId, @NotBlank String razorpayPaymentId,
-      @NotBlank String razorpaySignature) {}
+      @NotBlank String razorpaySignature,
+      @NotBlank @Email @Size(max = 254) String recipientEmail) {}
 }
