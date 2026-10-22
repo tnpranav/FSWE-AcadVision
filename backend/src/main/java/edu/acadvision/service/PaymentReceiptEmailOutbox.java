@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+// import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,17 +28,19 @@ public class PaymentReceiptEmailOutbox {
       DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a 'IST'", Locale.ENGLISH).withZone(INDIA_ZONE);
 
   private final JdbcTemplate jdbc;
-  private final JavaMailSender mailSender;
+  // private final JavaMailSender mailSender;
+  private final ResendEmailClient resendEmailClient;
   private final TransactionTemplate transactions;
   private final String mailbox;
   private final boolean mailConfigured;
 
-  public PaymentReceiptEmailOutbox(JdbcTemplate jdbc, JavaMailSender mailSender,
+  public PaymentReceiptEmailOutbox(JdbcTemplate jdbc, ResendEmailClient resendEmailClient, JavaMailSender mailSender,
       PlatformTransactionManager transactionManager,
       @Value("${spring.mail.username:}") String mailbox,
       @Value("${spring.mail.password:}") String mailPassword) {
     this.jdbc = jdbc;
-    this.mailSender = mailSender;
+    this.resendEmailClient = resendEmailClient;
+    // this.mailSender = mailSender;
     this.transactions = new TransactionTemplate(transactionManager);
     this.mailbox = mailbox == null ? "" : mailbox.trim();
     this.mailConfigured = !this.mailbox.isBlank() && mailPassword != null && !mailPassword.isBlank();
@@ -91,7 +93,8 @@ public class PaymentReceiptEmailOutbox {
       message.setTo(receipt.recipientEmail());
       message.setSubject("AcadVision payment receipt " + receipt.receiptNumber());
       message.setText(formatMessage(receipt));
-      mailSender.send(message);
+      // mailSender.send(message);
+      resendEmailClient.send(message);
 
       jdbc.update("""
           UPDATE payment_receipt_email_outbox
