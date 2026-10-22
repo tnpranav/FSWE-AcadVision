@@ -34,7 +34,7 @@ public class PaymentReceiptEmailOutbox {
   private final String mailbox;
   private final boolean mailConfigured;
 
-  public PaymentReceiptEmailOutbox(JdbcTemplate jdbc, ResendEmailClient resendEmailClient, JavaMailSender mailSender,
+  public PaymentReceiptEmailOutbox(JdbcTemplate jdbc, ResendEmailClient resendEmailClient, 
       PlatformTransactionManager transactionManager,
       @Value("${spring.mail.username:}") String mailbox,
       @Value("${spring.mail.password:}") String mailPassword) {
