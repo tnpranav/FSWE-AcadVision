@@ -117,6 +117,10 @@ public class FeeController {
     jdbc.update("""
         UPDATE razorpay_payment_orders SET status='PAID',razorpay_payment_id=?,receipt_number=?,verified_at=? WHERE id=?
         """, input.razorpayPaymentId(), receiptNumber, OffsetDateTime.now(), attempt.get("id"));
+    jdbc.update("""
+        INSERT INTO payment_receipt_email_outbox(razorpay_payment_order_id)
+        VALUES(?) ON CONFLICT (razorpay_payment_order_id) DO NOTHING
+        """, attempt.get("id"));
     return Map.of("status", "SUCCESS", "receiptNumber", receiptNumber, "invoiceId", invoiceId);
   }
 

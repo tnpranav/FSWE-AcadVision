@@ -51,6 +51,10 @@ For the API, use Java 21+, Maven 3.9+, and PostgreSQL 16+. Start PostgreSQL with
 2. Copy `backend/.env.local.example` to `backend/.env.local` and set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`. Keep this local file private; it is ignored by Git.
 3. Restart the backend with `powershell -ExecutionPolicy Bypass -File .\run-local.ps1` from `backend/`.
 4. Sign in as a student and open **Fees & payments**. Use Razorpay's test payment methods; no real money is collected.
+
+### Payment receipt email testing
+
+Successful, verified Razorpay payments are queued for an email receipt. In local testing, configure one Gmail mailbox as both sender and recipient in `backend/.env.local` using `MAIL_USERNAME` and a Google App Password in `MAIL_PASSWORD` (remove spaces from the displayed app password). The backend uses Gmail SMTP (`smtp.gmail.com`, port `587`, STARTTLS). Email delivery is retried if SMTP is unavailable and does not undo a verified payment. Keep the app password out of Git and chat. Without mail credentials, payments still succeed and receipts remain queued until email is configured.
 - Demo mode remains available separately. API mode loads connected portal data from the server; some summary/dashboard visuals continue to use sample values.
 - Administrator dashboard previews are read-only demos. There is no impersonation or authorization bypass.
 - API requests and examples are maintained in the Postman collection under `postman/`; Swagger/OpenAPI UI and endpoints are not included.

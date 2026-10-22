@@ -1,6 +1,21 @@
 server:
   port: 8000
 spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   application:
     name: acadvision-api
   datasource:
@@ -28,3 +43,5 @@ app:
   razorpay:
     key-id: ${RAZORPAY_KEY_ID:}
     key-secret: ${RAZORPAY_KEY_SECRET:}
+  payment-receipt-email:
+    poll-interval-ms: ${PAYMENT_RECEIPT_EMAIL_POLL_INTERVAL_MS:5000}
